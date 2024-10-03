@@ -5,18 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emergency SOS and Media</title>
     
-    <!-- Add Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Add Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
-    <!-- Add MediaRecorder Polyfill for cross-browser compatibility -->
-    <script src="https://cdn.jsdelivr.net/npm/adapter-5.3.0-1/dist/adapter.js"></script>
+   
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        
+        (function(){
+            emailjs.init("JzlETLGBdfurtF5TB"); 
+        })();
+    </script>
+    
+    <style>
+        .card { margin-bottom: 20px; }
+        #location-info, #audio-player, #video-player { margin-top: 10px; }
+        .btn { margin-top: 10px; }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="row">
+            
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
@@ -27,6 +37,8 @@
                     </div>
                 </div>
             </div>
+
+           
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
@@ -34,9 +46,12 @@
                         <p class="card-text">Click the button to record an audio message.</p>
                         <button class="btn btn-primary" id="audio-record-button">Record Audio</button>
                         <audio id="audio-player" controls style="display: none;"></audio>
+                        <button class="btn btn-secondary" id="send-audio-email" style="display:none;">Send Audio via Email</button>
                     </div>
                 </div>
             </div>
+
+       
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
@@ -44,6 +59,7 @@
                         <p class="card-text">Click the button to record a video.</p>
                         <button class="btn btn-success" id="video-record-button">Record Video</button>
                         <video id="video-player" controls style="display: none;"></video>
+                        <button class="btn btn-secondary" id="send-video-email" style="display:none;">Send Video via Email</button>
                     </div>
                 </div>
             </div>
@@ -51,80 +67,139 @@
     </div>
 
     <script>
-        // SOS Button - Get Current Location
-        document.getElementById('sos-button').addEventListener('click', () => {
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-                    document.getElementById('location-info').textContent = `Latitude: ${latitude}, Longitude: ${longitude}`;
+        let currentLocation = { latitude: null, longitude: null };  
+
+       
+        document.getElementById('sos-button').addEventListener('click', function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    currentLocation = { latitude: lat, longitude: lon };  
+                    document.getElementById('location-info').textContent = `Latitude: ${lat}, Longitude: ${lon}`;
+                }, function(error) {
+                    document.getElementById('location-info').textContent = "Unable to retrieve location.";
                 });
             } else {
-                alert("Geolocation is not supported by your browser.");
+                document.getElementById('location-info').textContent = "Geolocation is not supported by this browser.";
             }
         });
 
-        // Audio Recording Button
-        document.getElementById('audio-record-button').addEventListener('click', async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const mediaRecorder = new MediaRecorder(stream);
-                const audioChunks = [];
+        
+        let audioRecorder, audioChunks = [];
+        const audioPlayer = document.getElementById('audio-player');
+        const sendAudioEmailButton = document.getElementById('send-audio-email');
 
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
-                    }
-                };
+        document.getElementById('audio-record-button').addEventListener('click', async function() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Audio recording is not supported in this browser.');
+                return;
+            }
 
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    const audioPlayer = document.getElementById('audio-player');
+            if (!audioRecorder) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    audioRecorder = new MediaRecorder(stream);
+                    audioRecorder.ondataavailable = event => audioChunks.push(event.data);
+                    audioRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        audioPlayer.src = audioUrl;
+                        audioPlayer.style.display = 'block';
+                        sendAudioEmailButton.style.display = 'block';  
 
-                    audioPlayer.src = audioUrl;
-                    audioPlayer.style.display = 'block';
-                };
-
-                mediaRecorder.start();
-                setTimeout(() => {
-                    mediaRecorder.stop();
-                }, 5000); // Record for 5 seconds (adjust as needed)
-            } catch (error) {
-                console.error('Error accessing microphone:', error);
+                       
+                        sendAudioEmailButton.onclick = () => sendEmail(audioBlob, 'audio.wav', 'Audio message recorded. Check the live location:');
+                        audioChunks = [];
+                    };
+                    audioRecorder.start();
+                    this.textContent = 'Stop Recording';
+                } catch (error) {
+                    alert('Error accessing microphone: ' + error.message);
+                }
+            } else {
+                audioRecorder.stop();
+                audioRecorder = null;
+                this.textContent = 'Record Audio';
             }
         });
 
-        // Video Recording Button
-        document.getElementById('video-record-button').addEventListener('click', async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                const mediaRecorder = new MediaRecorder(stream);
-                const videoChunks = [];
+       
+        let videoRecorder, videoChunks = [];
+        const videoPlayer = document.getElementById('video-player');
+        const sendVideoEmailButton = document.getElementById('send-video-email');
 
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        videoChunks.push(event.data);
-                    }
-                };
+        document.getElementById('video-record-button').addEventListener('click', async function() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Video recording is not supported in this browser.');
+                return;
+            }
 
-                mediaRecorder.onstop = () => {
-                    const videoBlob = new Blob(videoChunks, { type: 'video/webm' });
-                    const videoUrl = URL.createObjectURL(videoBlob);
-                    const videoPlayer = document.getElementById('video-player');
+            if (!videoRecorder) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    videoRecorder = new MediaRecorder(stream);
+                    videoRecorder.ondataavailable = event => videoChunks.push(event.data);
+                    videoRecorder.onstop = () => {
+                        const videoBlob = new Blob(videoChunks, { type: 'video/webm' });
+                        const videoUrl = URL.createObjectURL(videoBlob);
+                        videoPlayer.src = videoUrl;
+                        videoPlayer.style.display = 'block';
+                        sendVideoEmailButton.style.display = 'block'; 
 
-                    videoPlayer.src = videoUrl;
-                    videoPlayer.style.display = 'block';
-                };
-
-                mediaRecorder.start();
-                setTimeout(() => {
-                    mediaRecorder.stop();
-                }, 10000); // Record for 10 seconds (adjust as needed)
-            } catch (error) {
-                console.error('Error accessing camera:', error);
+                       
+                        sendVideoEmailButton.onclick = () => sendEmail(videoBlob, 'video.webm', 'Video message recorded. Check the live location:');
+                        videoChunks = [];
+                    };
+                    videoRecorder.start();
+                    this.textContent = 'Stop Recording';
+                } catch (error) {
+                    alert('Error accessing camera: ' + error.message);
+                }
+            } else {
+                videoRecorder.stop();
+                videoRecorder = null;
+                this.textContent = 'Record Video';
             }
         });
+
+       
+        function sendEmail(blob, filename, message) {
+            
+            if (blob.size > 50000) { 
+                alert('The file is too large to send. Please record a shorter message.');
+                return;
+            }
+            
+           
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = function() { 
+                const base64data = reader.result.split(',')[1];  
+
+               
+                const locationMessage = `Location: https://www.openstreetmap.org/#map=18/${currentLocation.latitude}/${currentLocation.longitude}`;
+                const fullMessage = `${message}\n${locationMessage}`;
+
+                
+                emailjs.send('service_n1svbtl', 'template_pae5szn', {
+                    'to_name': 'Recipient Name',
+                    'from_name': 'Your Name',
+                    'message': fullMessage,
+                    'attachment': base64data,
+                    'file_name': filename
+                }).then(function(response) {
+                    alert('Email sent successfully!');
+                }, function(error) {
+                    alert('Failed to send email: ' + JSON.stringify(error));
+                });
+            };
+        }
     </script>
 </body>
 </html>
+
+
+
+
+
