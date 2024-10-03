@@ -3,53 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Safe Shelter- Home</title>
+    <title>Safe Shelter - Home</title>
     <style>
+      
         body {
-            font-family: Italic, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
         }
-        header {
-            background-color: #40b6ff;
-            color: white;
-            padding: 10px 0;
-            text-align: center;
-        }
-        nav {
-            margin: 20px 0;
-            text-align: center;
-        }
-        nav a {
-            margin: 0 15px;
+
+        a {
             color: #4096ff;
             text-decoration: none;
-            font-weight: bold;
         }
-        section {
-            padding: 20px;
-            margin: 0 auto;
-            max-width: 800px;
+
+        a:hover {
+            text-decoration: underline;
         }
-        h1, h2 {
-            color: #333;
-        }
-        .content {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        footer {
-            background-color: #40a9ff;
-            color: white;
+
+       
+        header {
+            background-color: #084c8d;
+            color: #ffffff;
+            padding: 20px 0;
             text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.5s ease;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 3rem;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 
+                         0 0 20px rgba(255, 255, 255, 0.6), 
+                         0 0 30px rgba(255, 255, 255, 0.4);
+            transition: color 0.5s ease;
+        }
+
+        header h1:hover {
+            color: #b3e0ff;
+        }
+
+        header p {
+            margin: 0;
+            font-size: 1.2rem;
+            font-style: italic;
+            animation: slideIn 2s ease-out forwards;
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+       
+        nav {
+            background-color: #0663bf;
             padding: 10px 0;
-            position: fixed;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        nav a {
+            margin: 0 15px;
+            color: #ffffff;
+            text-transform: uppercase;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 20px;
+            transition: background-color 0.3s, color 0.3s, transform 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #ffffff;
+            color: #0663bf;
+            transform: scale(1.1);
+        }
+
+       
+        section {
+            padding: 40px 20px;
+            margin: 0 auto;
+            max-width: 1000px;
+        }
+
+        h2 {
+            color: #084c8d;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        h2:hover {
+            color: #0663bf;
+        }
+
+        .content {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 40px;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
+        }
+
+        .content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        ul {
+            list-style-type: square;
+            padding-left: 20px;
+        }
+
+        
+        footer {
+            background-color: #084c8d;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px 0;
+            position: relative;
             width: 100%;
-            bottom: 0;
+            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        footer p {
+            margin: 0;
+        }
+
+    
+        html {
+            scroll-behavior: smooth;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            nav a {
+                margin: 0 10px;
+                padding: 6px 12px;
+            }
+
+            section {
+                padding: 20px 15px;
+            }
+
+            .content {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -63,8 +178,8 @@
         <a href="#safety-tips">Safety Tips</a>
         <a href="#resources">Resources</a>
         <a href="#contact">Contact</a>
-        <a href="file:///D:/hackathon/Women-safety-website/LOCATION%20GPS.html">Track Location</a>
-        <a href="file:///D:/hackathon/Women-safety-website/SOS%20PAGE%20%2C%20AUDIO%20and%20VIDEO.html">SOS</a>
+        <a href="LOCATION GPS.html">Track Location</a>
+        <a href="SOS PAGE , AUDIO and VIDEO.html">SOS</a>
     </nav>
     <section id="welcome" class="content">
         <h2>Welcome to Women's Safety</h2>
@@ -99,5 +214,3 @@
     </footer>
 </body>
 </html>
-
-
